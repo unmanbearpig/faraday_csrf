@@ -1,0 +1,17 @@
+Style/MethodDefParentheses:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/SignalException:
+  Enabled: false
+
+Style/MultilineOperationIndentation:
+  Enabled: false
+
+Style/RaiseArgs:
+  EnforcedStyle: compact
+
+Style/IfUnlessModifier:
+  Enabled: false
