@@ -8,7 +8,7 @@ describe Faraday::CSRF do
   let(:url) { 'https://example.com/' }
   let(:extractor) { double(:extractor) }
 
-  def connection_with_extractor extractor
+  let(:connection) do
     Faraday.new url do |conn|
       conn.use Faraday::CSRF, extractor
       conn.request :url_encoded
@@ -21,47 +21,46 @@ describe Faraday::CSRF do
       .to_return(body: body)
   end
 
+  def stub_extractor &block
+    allow(extractor).to receive :extract_from, &block
+    extractor
+  end
+
   it 'uses the extractor' do
     expect(extractor)
       .to receive(:extract_from).with('-~-body-~-') { 'the-token' }
 
-    conn = connection_with_extractor extractor
-
     stub_get '-~-body-~-'
-    response = conn.get('/')
+    response = connection.get('/')
 
     expect(response.env[:csrf_token])
       .to eq 'the-token'
   end
 
   it 'injects the token into POST requests' do
-    allow(extractor).to receive :extract_from do
+    stub_extractor do
       Token.new name: 'hello-token',
                 value: 'the-token-itself'
     end
 
-    conn = connection_with_extractor extractor
-
     stub_get 'blah'
-    conn.get('/')
+    connection.get('/')
 
     post_request_stub = stub_request(:post, url)
                         .with(body: { 'post_data' => 'data',
                                       'hello-token' => 'the-token-itself' })
 
-    conn.post('/', post_data: 'data')
+    connection.post('/', post_data: 'data')
     expect(post_request_stub).to have_been_made
   end
 
   it 'does not set the csrf_token if it is not found' do
-    allow(extractor).to receive :extract_from do
+    stub_extractor do
       raise Faraday::CSRF::Token::NotFound.new
     end
 
-    conn = connection_with_extractor extractor
-
     stub_get 'blah'
-    response = conn.get('/')
+    response = connection.get('/')
 
     expect(response.env.key?(:csrf_token))
       .to be_falsey
