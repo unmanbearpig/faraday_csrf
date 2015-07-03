@@ -37,3 +37,7 @@ module Faraday
     end
   end
 end
+
+if Faraday::Middleware.respond_to? :register_middleware
+  Faraday::Middleware.register_middleware :csrf => Faraday::CSRF
+end

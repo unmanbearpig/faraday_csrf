@@ -91,4 +91,9 @@ describe Faraday::CSRF do
 
     expect(post_request).to have_been_made
   end
+
+  it 'registers a middleware' do
+    expect(Faraday::Middleware.lookup_middleware(:csrf))
+      .to eq Faraday::CSRF
+  end
 end
