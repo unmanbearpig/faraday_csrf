@@ -2,7 +2,6 @@ require 'faraday_csrf'
 require 'webmock/rspec'
 require 'faraday_csrf/token'
 
-# TODO: extract token extractor and token injector parts
 describe Faraday::CSRF do
   Token = Faraday::CSRF::Token
 
@@ -68,8 +67,29 @@ describe Faraday::CSRF do
       .to be_falsey
   end
 
-  it 'does not add token to get or head'
-  it 'removes the token after it was used'
+  it 'does not reuse the token' do
+    stub_extractor do
+      Token.new value: 'the-token'
+    end
 
-  it 'registers the middleware'
+    stub_get 'test'
+    connection.get '/'
+
+    stub_request(:post, url)
+      .to_return body: 'does not matter'
+
+    stub_extractor do
+      raise Token::NotFound.new
+    end
+
+    connection.post '/', test: 'hello' # expiring the token
+
+    post_request = stub_request(:post, url)
+      .with(body: { 'hello' => 'kitty' })
+      .to_return body: 'does not mater again'
+
+    connection.post '/', 'hello' => 'kitty'
+
+    expect(post_request).to have_been_made
+  end
 end
