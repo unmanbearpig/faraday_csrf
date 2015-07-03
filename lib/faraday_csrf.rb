@@ -33,6 +33,7 @@ module Faraday
 
     def inject_token_into request_env
       request_env.body.merge! token.to_h
+      @token = nil
     end
   end
 end
