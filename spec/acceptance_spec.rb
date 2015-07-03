@@ -3,8 +3,6 @@ require 'faraday_csrf'
 require 'faraday-cookie_jar'
 require 'vcr_helper'
 
-require 'pry'
-
 describe Faraday::CSRF do
   let(:url) { 'https://post-ping.herokuapp.com/' }
 
