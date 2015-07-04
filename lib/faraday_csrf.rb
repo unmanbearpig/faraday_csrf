@@ -5,9 +5,9 @@ module Faraday
   class CSRF
     attr_reader :app, :extractor, :token
 
-    def initialize(app, extractor = MetaTagRegexExtractor)
+    def initialize(app, options = {})
       @app = app
-      @extractor = extractor
+      @extractor = options[:extractor] || MetaTagRegexExtractor
     end
 
     def call request_env

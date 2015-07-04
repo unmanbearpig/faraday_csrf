@@ -10,7 +10,7 @@ describe Faraday::CSRF do
 
   let(:connection) do
     Faraday.new url do |conn|
-      conn.use Faraday::CSRF, extractor
+      conn.use Faraday::CSRF, extractor: extractor
       conn.request :url_encoded
       conn.adapter Faraday.default_adapter
     end
