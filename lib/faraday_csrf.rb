@@ -1,19 +1,19 @@
 require "faraday_csrf/version"
+require "faraday_csrf/token_injector"
 require 'faraday_csrf/token_extractors/meta_tag_regex_extractor'
 
 module Faraday
   class CSRF
-    attr_reader :app, :extractor, :token
+    attr_reader :app, :token, :extractor, :injector
 
     def initialize(app, options = {})
       @app = app
       @extractor = options[:extractor] || MetaTagRegexExtractor
+      @injector = options[:injector] || TokenInjector.new
     end
 
     def call request_env
-      if should_inject_token? request_env
-        inject_token_into request_env
-      end
+      injector.inject(token, into: request_env)
 
       app.call(request_env).on_complete do |response_env|
         response_env[:csrf_token] =
@@ -21,19 +21,10 @@ module Faraday
       end
     end
 
-    def should_inject_token? request_env
-      request_env.method == :post
-    end
-
     def extract_token_from(response_body)
       @token = extractor.extract_from(response_body)
     rescue Token::NotFound
       # welp, guess there isn't one
-    end
-
-    def inject_token_into request_env
-      request_env.body.merge! token.to_h
-      @token = nil
     end
   end
 end

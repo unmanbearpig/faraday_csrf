@@ -37,6 +37,36 @@ describe Faraday::CSRF do
       .to eq 'the-token'
   end
 
+  it 'uses the injector to inject token into requests' do
+    injector = double(:injector, inject: '')
+
+    extractor = double(:extractor)
+    allow(extractor).to receive(:extract_from)
+                          .and_return('the-token')
+
+    connection = Faraday.new url do |conn|
+      conn.use Faraday::CSRF, extractor: extractor, injector: injector
+      conn.request :url_encoded
+      conn.adapter Faraday.default_adapter
+    end
+
+    stub_get('blah')
+    connection.get('/')
+
+    expect(injector)
+      .to receive(:inject) do |token, options|
+      env = options[:into]
+
+      expect(env).to be_kind_of(Faraday::Env)
+      expect(token).to eq('the-token')
+      expect(env.method).to eq :post
+      expect(env.url.to_s).to eq(url)
+    end
+
+    stub_request(:post, url)
+    connection.post('/')
+  end
+
   it 'injects the token into POST requests' do
     stub_extractor do
       Token.new name: 'hello-token',
@@ -54,6 +84,7 @@ describe Faraday::CSRF do
     expect(post_request_stub).to have_been_made
   end
 
+  # TODO: move to injector spec
   it 'does not set the csrf_token if it is not found' do
     stub_extractor do
       raise Faraday::CSRF::Token::NotFound.new
@@ -66,6 +97,7 @@ describe Faraday::CSRF do
       .to be_falsey
   end
 
+  # TODO: move to injector spec
   it 'does not reuse the token' do
     stub_extractor do
       Token.new value: 'the-token'
