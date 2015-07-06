@@ -1,127 +1,64 @@
 require 'faraday_csrf'
-require 'webmock/rspec'
-require 'faraday_csrf/token'
 
 describe Faraday::CSRF do
-  Token = Faraday::CSRF::Token
+  before do
+    @body = 'body'
+  end
 
   let(:url) { 'https://example.com/' }
-  let(:extractor) { double(:extractor) }
+  let(:extractor) { double(:extractor).as_null_object }
+  let(:injector) { double(:injector).as_null_object }
 
   let(:connection) do
     Faraday.new url do |conn|
-      conn.use Faraday::CSRF, extractor: extractor
+      conn.use Faraday::CSRF, extractor: extractor, injector: injector
       conn.request :url_encoded
-      conn.adapter Faraday.default_adapter
+      conn.adapter :test do |stub|
+        stub.get('/') { |env| [ 200, {}, @body ] }
+      end
     end
   end
 
   def stub_get body
-    stub_request(:get, url)
-      .to_return(body: body)
+    @body = body
   end
 
-  def stub_extractor &block
-    allow(extractor).to receive :extract_from, &block
-    extractor
-  end
-
-  it 'uses the extractor' do
-    expect(extractor)
-      .to receive(:extract_from).with('-~-body-~-') { 'the-token' }
-
-    stub_get '-~-body-~-'
-    response = connection.get('/')
-
-    expect(response.env[:csrf_token])
-      .to eq 'the-token'
-  end
-
-  it 'uses the injector to inject token into requests' do
-    injector = double(:injector, inject: '')
-
-    extractor = double(:extractor)
-    allow(extractor).to receive(:extract_from)
-                          .and_return('the-token')
-
-    connection = Faraday.new url do |conn|
-      conn.use Faraday::CSRF, extractor: extractor, injector: injector
-      conn.request :url_encoded
-      conn.adapter Faraday.default_adapter
-    end
-
-    stub_get('blah')
-    connection.get('/')
-
-    expect(injector)
-      .to receive(:inject) do |token, options|
-      env = options[:into]
-
-      expect(env).to be_kind_of(Faraday::Env)
-      expect(token).to eq('the-token')
-      expect(env.method).to eq :post
-      expect(env.url.to_s).to eq(url)
-    end
-
-    stub_request(:post, url)
-    connection.post('/')
-  end
-
-  it 'injects the token into POST requests' do
-    stub_extractor do
-      Token.new name: 'hello-token',
-                value: 'the-token-itself'
-    end
-
-    stub_get 'blah'
-    connection.get('/')
-
-    post_request_stub = stub_request(:post, url)
-                        .with(body: { 'post_data' => 'data',
-                                      'hello-token' => 'the-token-itself' })
-
-    connection.post('/', post_data: 'data')
-    expect(post_request_stub).to have_been_made
-  end
-
-  # TODO: move to injector spec
-  it 'does not set the csrf_token if it is not found' do
-    stub_extractor do
-      raise Faraday::CSRF::Token::NotFound.new
-    end
-
-    stub_get 'blah'
-    response = connection.get('/')
-
-    expect(response.env.key?(:csrf_token))
-      .to be_falsey
-  end
-
-  # TODO: move to injector spec
-  it 'does not reuse the token' do
-    stub_extractor do
-      Token.new value: 'the-token'
-    end
-
-    stub_get 'test'
+  def make_request! body = ''
+    stub_get body
     connection.get '/'
+  end
 
-    stub_request(:post, url)
-      .to_return body: 'does not matter'
+  def stub_token token
+    expect(extractor).to receive(:extract_from)
+                          .and_return(token)
+  end
 
-    stub_extractor do
-      raise Token::NotFound.new
+  def expect_token expected_token
+    expect(injector).to receive(:inject) do |token, _request_env|
+      expect(token).to eq expected_token
     end
+  end
 
-    connection.post '/', test: 'hello' # expiring the token
+  def expect_body expected_body
+    expect(extractor).to receive(:extract_from) do |body|
+      expect(body).to eq expected_body
+    end
+  end
 
-    post_request = stub_request(:post, url)
-      .with(body: { 'hello' => 'kitty' })
-      .to_return body: 'does not mater again'
+  it 'passes request env to the extractor' do
+    expect_body 'hello body'
+    make_request! 'hello body'
+  end
 
-    connection.post '/', 'hello' => 'kitty'
+  it 'passes the token to the injector' do
+    stub_token 'our token'
 
-    expect(post_request).to have_been_made
+    # first request, not extracted token yet
+    expect_token nil
+    make_request!
+
+    expect_token 'our token'
+    make_request!
   end
 
   it 'registers a middleware' do
