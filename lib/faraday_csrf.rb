@@ -1,6 +1,6 @@
 require "faraday_csrf/version"
 require "faraday_csrf/token_injector"
-require 'faraday_csrf/token_extractors/meta_tag_regex_extractor'
+require 'faraday_csrf/token_extractors/default_extractor'
 
 module Faraday
   class CSRF
@@ -8,7 +8,7 @@ module Faraday
 
     def initialize(app, options = {})
       @app = app
-      @extractor = options[:extractor] || MetaTagRegexExtractor
+      @extractor = options[:extractor] || DefaultExtractor
       @injector = options[:injector] || TokenInjector.new
     end
 
