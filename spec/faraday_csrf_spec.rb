@@ -3,7 +3,7 @@ require 'faraday_csrf'
 describe Faraday::CSRF do
   let(:url) { 'https://example.com/' }
   let(:extractor) { double(:extractor).as_null_object }
-  let(:injector) { double(:injector) }
+  let(:injector) { double(:injector).as_null_object }
 
   let(:connection) do
     connection_with_csrf extractor: extractor, injector: injector do |stub|
