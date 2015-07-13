@@ -1,30 +1,26 @@
 require 'faraday_csrf'
 
 describe Faraday::CSRF do
-  before do
-    @body = 'body'
-  end
-
   let(:url) { 'https://example.com/' }
   let(:extractor) { double(:extractor).as_null_object }
-  let(:injector) { double(:injector).as_null_object }
+  let(:injector) { double(:injector) }
 
   let(:connection) do
-    Faraday.new url do |conn|
-      conn.use Faraday::CSRF, extractor: extractor, injector: injector
-      conn.request :url_encoded
-      conn.adapter :test do |stub|
-        stub.get('/') { |env| [ 200, {}, @body ] }
-      end
+    connection_with_csrf extractor: extractor, injector: injector do |stub|
+      stub.get('/') { |env| [ 200, {}, @body ] }
     end
   end
 
-  def stub_get body
-    @body = body
+  def connection_with_csrf params, &block
+    Faraday.new url do |conn|
+      conn.use Faraday::CSRF, params
+      conn.request :url_encoded
+      conn.adapter :test, &block
+    end
   end
 
   def make_request! body = ''
-    stub_get body
+    @body = body
     connection.get '/'
   end
 
@@ -39,15 +35,17 @@ describe Faraday::CSRF do
     end
   end
 
-  def expect_body expected_body
-    expect(extractor).to receive(:extract_from) do |body|
-      expect(body).to eq expected_body
-    end
+  it 'registers a middleware' do
+    expect(Faraday::Middleware.lookup_middleware(:csrf))
+      .to eq Faraday::CSRF
   end
 
   it 'passes request env to the extractor' do
-    expect_body 'hello body'
     make_request! 'hello body'
+
+    expect(extractor).to have_received(:extract_from) do |body|
+      expect(body).to eq 'hello body'
+    end
   end
 
   it 'passes the token to the injector' do
@@ -59,10 +57,5 @@ describe Faraday::CSRF do
 
     expect_token 'our token'
     make_request!
-  end
-
-  it 'registers a middleware' do
-    expect(Faraday::Middleware.lookup_middleware(:csrf))
-      .to eq Faraday::CSRF
   end
 end
