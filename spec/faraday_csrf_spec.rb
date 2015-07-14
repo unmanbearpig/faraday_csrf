@@ -40,12 +40,11 @@ describe Faraday::CSRF do
       .to eq Faraday::CSRF
   end
 
-  it 'passes request env to the extractor' do
+  it 'passes response body to the extractor' do
     make_request! 'hello body'
 
-    expect(extractor).to have_received(:extract_from) do |body|
-      expect(body).to eq 'hello body'
-    end
+    expect(extractor).to have_received(:extract_from)
+                          .with 'hello body'
   end
 
   it 'passes the token to the injector' do
