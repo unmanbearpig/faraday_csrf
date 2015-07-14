@@ -5,22 +5,22 @@ describe Faraday::CSRF do
   let(:extractor) { double(:extractor).as_null_object }
   let(:injector) { double(:injector).as_null_object }
 
+  let(:stubs) { Faraday::Adapter::Test::Stubs.new }
+
   let(:connection) do
-    connection_with_csrf extractor: extractor, injector: injector do |stub|
-      stub.get('/') { |env| [ 200, {}, @body ] }
-    end
+    connection_with_csrf extractor: extractor, injector: injector
   end
 
-  def connection_with_csrf params, &block
+  def connection_with_csrf params
     Faraday.new url do |conn|
       conn.use Faraday::CSRF, params
       conn.request :url_encoded
-      conn.adapter :test, &block
+      conn.adapter :test, stubs
     end
   end
 
   def make_request! body = ''
-    @body = body
+    stubs.get('/') { |_env| [ 200, {}, body ] }
     connection.get '/'
   end
 
