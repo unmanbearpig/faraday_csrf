@@ -32,7 +32,7 @@ module Faraday
     def extract_token_from(response_body)
       @token = extractor.extract_from(response_body)
     rescue Token::NotFound
-      # welp, guess there isn't one
+      nil
     end
   end
 end
