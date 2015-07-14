@@ -8,8 +8,8 @@ module Faraday
 
     def initialize(app, options = {})
       @app = app
-      @extractor = options[:extractor] || DefaultExtractor
-      @injector = options[:injector] || TokenInjector.new
+      @extractor = options.fetch(:extractor) { DefaultExtractor }
+      @injector = options.fetch(:injector) { TokenInjector.new }
     end
 
     def call request_env
