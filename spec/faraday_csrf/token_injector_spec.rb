@@ -40,8 +40,14 @@ describe Faraday::CSRF::TokenInjector do
                                  method: :post, body: '')
   end
 
-  it 'ignores nil token' do
-    subject.inject nil, into: double(:env, method: :post, body: {})
+  it 'raises error if we need a token that we don\'t have' do
+    expect do
+      subject.inject nil, into: double(:env, method: :post, body: {})
+    end.to raise_error Faraday::CSRF::TokenInjector::MissingToken
+  end
+
+  it 'does not raise error if we don\' have a token when we don\'t need one' do
+    subject.inject nil, into: double(:env, method: :get)
   end
 
   it 'ignores string body' do

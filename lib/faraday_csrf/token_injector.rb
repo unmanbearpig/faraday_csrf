@@ -3,6 +3,9 @@ require 'faraday_csrf/token'
 module Faraday
   class CSRF
     class TokenInjector
+      class MissingToken < Exception
+      end
+
       DEFAULT_IGNORE_METHODS = [:get, :head]
 
       attr_reader :ignore_methods
@@ -12,8 +15,9 @@ module Faraday
       end
 
       def inject(token, into:)
-        return unless token
         return unless should_inject?(into)
+
+        raise MissingToken unless token
 
         inject!(token, env: into)
       end
