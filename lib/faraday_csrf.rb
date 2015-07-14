@@ -13,12 +13,20 @@ module Faraday
     end
 
     def call request_env
-      injector.inject(token, into: request_env)
+      handle_request request_env
 
       app.call(request_env).on_complete do |response_env|
-        response_env[:csrf_token] =
-          extract_token_from response_env.body
+        handle_response response_env
       end
+    end
+
+    def handle_request request_env
+      injector.inject(token, into: request_env)
+    end
+
+    def handle_response response_env
+      response_env[:csrf_token] =
+        extract_token_from response_env.body
     end
 
     def extract_token_from(response_body)
