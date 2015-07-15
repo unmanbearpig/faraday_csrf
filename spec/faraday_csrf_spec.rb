@@ -2,8 +2,6 @@ require 'faraday_csrf'
 
 describe Faraday::CSRF do
   let(:url) { 'https://example.com/' }
-  let(:extractor) { double(:extractor).as_null_object }
-  let(:injector) { double(:injector).as_null_object }
 
   let(:stubs) { Faraday::Adapter::Test::Stubs.new }
 
@@ -38,21 +36,18 @@ describe Faraday::CSRF do
       .to eq Faraday::CSRF
   end
 
-  it 'passes response body to the extractor' do
-    make_request! 'hello body'
+  describe 'initialization' do
+    it 'initializes the handler'
 
-    expect(extractor).to have_received(:extract_from)
-                          .with 'hello body'
+    context "has url to fetch a token from" do
+      it 'initializes the fetcher'
+    end
+
+    context "don't have url to fetch a token from" do
+      it 'does not initialize the fetcher'
+    end
   end
 
-  it 'passes the token to the injector' do
-    stub_token 'our token'
-
-    # first request, not extracted token yet
-    expect_token nil
-    make_request!
-
-    expect_token 'our token'
-    make_request!
-  end
+  it 'passes the request env to handle_request'
+  it 'passes the response env to handle response'
 end
