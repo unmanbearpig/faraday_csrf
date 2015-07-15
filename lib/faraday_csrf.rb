@@ -1,15 +1,23 @@
 require "faraday_csrf/version"
+require "faraday_csrf/token_fetcher"
 require "faraday_csrf/token_injector"
 require 'faraday_csrf/token_extractors/default_extractor'
 
 module Faraday
   class CSRF
-    attr_reader :app, :token, :extractor, :injector
+    attr_reader :app, :token, :extractor, :injector, :fetcher
 
     def initialize(app, options = {})
       @app = app
       @extractor = options.fetch(:extractor) { DefaultExtractor }
       @injector = options.fetch(:injector) { TokenInjector.new }
+
+      fetch_url = options[:fetch_token_from_url]
+      if fetch_url
+        @fetcher = TokenFetcher.new fetch_url
+      else
+        @fetcher = Proc.new {}
+      end
     end
 
     def call request_env
@@ -22,6 +30,9 @@ module Faraday
 
     def handle_request request_env
       injector.inject(token, into: request_env)
+    rescue TokenInjector::MissingToken
+      fetcher.call self, request_env
+      retry
     end
 
     def handle_response response_env
