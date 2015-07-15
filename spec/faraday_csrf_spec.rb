@@ -30,9 +30,7 @@ describe Faraday::CSRF do
   end
 
   def expect_token expected_token
-    expect(injector).to receive(:inject) do |token, _request_env|
-      expect(token).to eq expected_token
-    end
+    expect(injector).to receive(:inject).with(expected_token, anything)
   end
 
   it 'registers a middleware' do
