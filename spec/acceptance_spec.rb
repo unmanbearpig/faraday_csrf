@@ -22,8 +22,6 @@ describe Faraday::CSRF do
     it 'successfully posts to rails app' do
       post_response = VCR.use_cassette 'simple_rails_app_simple_post' do
         connection.get '/'
-
-        # POST in rails have csrf protection
         connection.post '/echo', 'some data': 'blah'
       end
 
@@ -34,7 +32,6 @@ describe Faraday::CSRF do
       arguments[:fetch_token_from_url] = '/'
 
       post_response = VCR.use_cassette 'simple_rails_app_fetching_token' do
-        # POST in rails have csrf protection
         connection.post '/echo', 'some data': 'blah'
       end
 

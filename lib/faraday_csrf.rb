@@ -1,5 +1,5 @@
 require "faraday_csrf/version"
-require 'faraday_csrf/token_handler'
+require 'faraday_csrf/creates_token_handler'
 
 module Faraday
   class CSRF
@@ -7,18 +7,8 @@ module Faraday
 
     def initialize(app, options = {})
       @app = app
-
-      fetch_url = options[:fetch_token_from_url]
-      if fetch_url
-        fetcher = TokenFetcher.new app: self, url: fetch_url
-      else
-        fetcher = Proc.new {}
-      end
-
-      @handler = options.fetch(:handler) do
-        TokenHandler.new extractor: DefaultExtractor,
-                         injector: TokenInjector.new,
-                         fetcher: fetcher
+      @handler = options.fetch(:token_handler) do
+        CreatesTokenHandler.create(options.merge(app: self))
       end
     end
 
