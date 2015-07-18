@@ -1,4 +1,5 @@
 require 'faraday_csrf/token_handler'
+require 'faraday_csrf/token_extractors/first_successful_extractor'
 require 'faraday_csrf/token_extractors/meta_tag_regex_extractor'
 require 'faraday_csrf/token_extractors/meta_tag_nokogiri_extractor'
 
@@ -26,7 +27,7 @@ module Faraday
       end
 
       def extractor
-        CompositeExtractor.new(extractors_to_try)
+        FirstSuccessfulExtractor.new(extractors_to_try)
       end
 
       def injector

@@ -1,6 +1,6 @@
-require 'faraday_csrf/token_extractors/composite_extractor'
+require 'faraday_csrf/token_extractors/first_successful_extractor'
 
-describe Faraday::CSRF::CompositeExtractor do
+describe Faraday::CSRF::FirstSuccessfulExtractor do
   Token = Faraday::CSRF::Token
 
   let(:data) { double(:data) }
@@ -22,8 +22,8 @@ describe Faraday::CSRF::CompositeExtractor do
   end
 
   def call_with_extractors *extractors
-    composite = described_class.new(extractors)
-    composite.extract_from(data)
+    composite_extractor = described_class.new(extractors)
+    composite_extractor.extract_from(data)
   end
 
   it 'passes input to each extractor' do

@@ -2,20 +2,20 @@ require 'faraday_csrf/token'
 
 module Faraday
   class CSRF
-    class CompositeExtractor
+    class FirstSuccessfulExtractor
       attr_reader :extractors
 
-      def initialize(extractors)
-        @extractors = extractors
+      def initialize(extractors_to_try)
+        @extractors = extractors_to_try
         unless extractors.any?
-          raise ArgumentError.new "Pass at least one extractor into CompositeExtractor"
+          raise ArgumentError.new "Pass at least one extractor into FirstSuccessfulExtractor"
         end
       end
 
       def extract_from input_data
         results = extractors.lazy
-          .map { |x| call_it x, input_data }
-          .reject(&:nil?)
+                  .map { |x| call_it x, input_data }
+                  .reject(&:nil?)
 
         if results.any?
           results.first
@@ -27,12 +27,9 @@ module Faraday
       private
 
       def call_it extractor, input_data
-        begin
-          extractor.extract_from(input_data)
-        rescue Token::NotFound
-          # just skip it
-        end
-
+        extractor.extract_from(input_data)
+      rescue Token::NotFound
+        # just skip it
       end
     end
   end
