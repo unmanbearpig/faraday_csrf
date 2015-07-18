@@ -2,6 +2,9 @@ require 'faraday_csrf/token'
 
 module Faraday
   class CSRF
+    # Much faster than using Nokogiri
+    # use it in combination with Nokogiri extractor,
+    # since it might be not as robust
     class MetaTagRegexExtractor
       attr_reader :html
 
