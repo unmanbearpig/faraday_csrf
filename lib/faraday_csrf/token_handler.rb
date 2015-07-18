@@ -1,6 +1,5 @@
 require "faraday_csrf/token_fetcher"
 require "faraday_csrf/token_injector"
-require 'faraday_csrf/token_extractors/default_extractor'
 
 module Faraday
   class CSRF

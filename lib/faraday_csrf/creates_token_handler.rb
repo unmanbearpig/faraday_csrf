@@ -1,4 +1,6 @@
 require 'faraday_csrf/token_handler'
+require 'faraday_csrf/token_extractors/meta_tag_regex_extractor'
+require 'faraday_csrf/token_extractors/meta_tag_nokogiri_extractor'
 
 module Faraday
   class CSRF
@@ -13,13 +15,18 @@ module Faraday
       end
 
       def token_handler
-        TokenHandler.new extractor: DefaultExtractor,
-                         injector: TokenInjector.new,
+        TokenHandler.new extractor: extractor,
+                         injector: injector,
                          fetcher: fetcher
       end
 
+      def extractors_to_try
+        [MetaTagRegexExtractor,
+         MetaTagNokogiriExtractor]
+      end
+
       def extractor
-        DefaultExtractor
+        CompositeExtractor.new(extractors_to_try)
       end
 
       def injector
