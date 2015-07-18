@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/unmanbearpig/faraday_csrf.svg?branch=master)](https://travis-ci.org/unmanbearpig/faraday_csrf)
 [![Code Climate](https://codeclimate.com/github/unmanbearpig/faraday_csrf/badges/gpa.svg)](https://codeclimate.com/github/unmanbearpig/faraday_csrf)
 
-# Faraday CSRF
+# Faraday CSRF middleware
 
 Transparently handles Rails (and maybe not only Rails) CSRF protection, in case you need to send requests to an app that doesn't provide an API.
 It tries to extract a CSRF token from each request and later inserts it into (POST, PUT, DELETE, etc.) requests that probably require it.
