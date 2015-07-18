@@ -2,7 +2,7 @@ require 'faraday_csrf/token'
 
 module Faraday
   class CSRF
-    class TokenInjector
+    class InjectsTokenIntoBody
       class MissingToken < Exception
       end
 

@@ -31,7 +31,7 @@ module Faraday
       end
 
       def injector
-        TokenInjector.new
+        InjectsTokenIntoBody.new
       end
 
       def fetcher

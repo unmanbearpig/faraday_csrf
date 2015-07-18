@@ -1,6 +1,6 @@
-require 'faraday_csrf/token_injector'
+require 'faraday_csrf/injects_token_into_body'
 
-describe Faraday::CSRF::TokenInjector do
+describe Faraday::CSRF::InjectsTokenIntoBody do
   subject { described_class.new }
 
   it 'injects the token' do
@@ -43,7 +43,7 @@ describe Faraday::CSRF::TokenInjector do
   it 'raises error if we need a token that we don\'t have' do
     expect do
       subject.inject nil, into: double(:env, method: :post, body: {})
-    end.to raise_error Faraday::CSRF::TokenInjector::MissingToken
+    end.to raise_error Faraday::CSRF::InjectsTokenIntoBody::MissingToken
   end
 
   it 'does not raise error if we don\' have a token when we don\'t need one' do

@@ -33,7 +33,7 @@ module Faraday
 
             expect(injector)
               .to receive(:inject)
-                   .and_raise(TokenInjector::MissingToken)
+                   .and_raise(InjectsTokenIntoBody::MissingToken)
 
             expect(fetcher).to receive(:call).with(request_env) do
               expect(injector).to receive(:inject).and_return(:the_token)

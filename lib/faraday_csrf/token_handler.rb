@@ -1,5 +1,5 @@
 require "faraday_csrf/token_fetcher"
-require "faraday_csrf/token_injector"
+require "faraday_csrf/injects_token_into_body"
 
 module Faraday
   class CSRF
@@ -14,7 +14,7 @@ module Faraday
 
       def handle_request request_env
         @injector.inject(@token, into: request_env)
-      rescue TokenInjector::MissingToken
+      rescue InjectsTokenIntoBody::MissingToken
         @fetcher.call request_env
         retry
       end
