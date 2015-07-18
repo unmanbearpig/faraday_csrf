@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/unmanbearpig/faraday_csrf.svg?branch=master)](https://travis-ci.org/unmanbearpig/faraday_csrf)
+[![Code Climate](https://codeclimate.com/github/unmanbearpig/faraday_csrf/badges/gpa.svg)](https://codeclimate.com/github/unmanbearpig/faraday_csrf)
+
 # Faraday CSRF
 
 Saves a (Rails) CSRF token, and later adds it to POST requests.
