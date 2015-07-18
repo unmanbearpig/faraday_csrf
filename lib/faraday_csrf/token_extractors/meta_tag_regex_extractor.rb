@@ -8,7 +8,7 @@ module Faraday
     class MetaTagRegexExtractor
       attr_reader :html
 
-      class ExtractError < RuntimeError; end
+      class ExtractionError < RuntimeError; end
 
       def initialize(html)
         @html = html
@@ -20,7 +20,7 @@ module Faraday
 
       def name
         content_from_meta_tag('csrf-param')
-      rescue ExtractError
+      rescue ExtractionError
         nil
       end
 
@@ -39,13 +39,13 @@ module Faraday
       def find_meta_tag(name)
         html.match(/<meta [^>]*name="#{name}"[^>]+>/)[0]
       rescue NoMethodError
-        raise ExtractError.new "Could not find meta tag with name '#{name}'"
+        raise ExtractionError.new "Could not find meta tag with name '#{name}'"
       end
 
       def content_from_tag token_string
         token_string.match(/ content="([^"]+)"/)[1]
       rescue NoMethodError
-        raise ExtractError.new "Could not find content inside the html tag '#{token_string}'"
+        raise ExtractionError.new "Could not find content inside the html tag '#{token_string}'"
       end
 
       class << self
