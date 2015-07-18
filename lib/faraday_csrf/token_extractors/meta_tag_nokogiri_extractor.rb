@@ -2,7 +2,7 @@ require 'faraday_csrf/token_extractors/nokogiri_extractor'
 
 module Faraday
   class CSRF
-    class NokogiriMetaTagExtractor < NokogiriExtractor
+    class MetaTagNokogiriExtractor < NokogiriExtractor
       protected
 
       def name
